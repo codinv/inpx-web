@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  server:
+    container_name: inpx-web
+    image: ghcr.io/codinv/inpx-web
+    network_mode: bridge
+    ports:
+      - "12380:12380/tcp"
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Moscow
+      LIB_DIR: /library/lib.rus.ec
+      INPX_FILE: /library/librusec_local_fb2.inpx
+    volumes:
+      - ./:/data
+      - /volume1/MyLibrary:/library:ro

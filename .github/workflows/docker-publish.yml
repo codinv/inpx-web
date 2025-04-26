@@ -1,0 +1,76 @@
+name: docker-publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_version:
+        description: |
+          Docker image version (required for manual trigger):
+          - Use semantic versioning format (e.g., 1.0.0 or v1.0.0)
+          - Will be used as image tag
+        required: true
+        type: string
+  release:
+    types: [published]
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout project code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+        
+      - name: Checkout ci-configs
+        uses: actions/checkout@v4
+        with:
+          repository: codinv/ci-configs
+          path: ci-configs
+          token: ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}
+          
+      - name: Verify Dockerfile and set vars
+        run: |
+          PROJECT_NAME=$(basename ${{ github.repository }})
+          DOCKERFILE_PATH="ci-configs/$PROJECT_NAME/Dockerfile"
+          echo "DOCKERFILE_PATH=$DOCKERFILE_PATH" >> $GITHUB_ENV
+          echo "REG_REPO=${{ github.repository_owner }}/$PROJECT_NAME" >> $GITHUB_ENV
+          [ -f "$DOCKERFILE_PATH" ] || { echo "::error::Dockerfile not found at path: $DOCKERFILE_PATH"; exit 1; }
+          
+      - name: Determine image version
+        id: set_version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "IMAGE_VERSION=${{ github.event.inputs.build_version }}" >> $GITHUB_OUTPUT
+          else
+            echo "IMAGE_VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          fi
+          echo "Using version: $IMAGE_VERSION"
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ env.DOCKERFILE_PATH }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ env.REG_REPO }}:${{ steps.set_version.outputs.IMAGE_VERSION }}
+            ghcr.io/${{ env.REG_REPO }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.repository_url }}
+            org.opencontainers.image.version=${{ steps.set_version.outputs.IMAGE_VERSION }}
