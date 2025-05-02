@@ -107,3 +107,41 @@ services:
 	from_mail = "your_mail_user@yandex.ru"
 	to_mail = "your_kindle_email@kindle.com"
 ````
+
+### Скрипт для переименования файла книги перед конвертацией:
+
+Добавил скрипт, переименовывающий файл в формат: **"Название книги.fb2"** или **"ХХ Название книги.fb2"**, если несколько книг в одной серии, где **ХХ** номер книги в серии.
+
+Скрипт worker.sh [скачать тут](https://github.com/codinv/inpx-web/blob/main/build/worker.sh), сохранить в корень папки с контейнером **inpx-web**
+
+#### Пример настроек external_tools.json для использования скрипта
+
+```json
+{
+  "epubExport": {
+    "active": true,
+    "title": "(Kindle)",
+    "hint": "Отправить на Kindle",
+    "ext": "fb2",
+    "cmd": "cp '${HASHFILE}.raw' '${FILENAME}'; sh '${EXTDIR}/worker.sh' '${FILENAME}'",
+    "debug": true,
+    "type": "cmd"
+  }
+}
+```
+
+либо так, если надо указать свое имя файлу configuration.toml (по умолчанию подставляется имя configuration.toml)
+
+```json
+{
+  "epubExport": {
+    "active": true,
+    "title": "(Kindle)",
+    "hint": "Отправить на Kindle",
+    "ext": "fb2",
+    "cmd": "cp '${HASHFILE}.raw' '${FILENAME}'; sh '${EXTDIR}/worker.sh' '${FILENAME}' 'my_config.toml'",
+    "debug": true,
+    "type": "cmd"
+  }
+}
+```
