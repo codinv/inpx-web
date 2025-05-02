@@ -81,4 +81,4 @@ fi
 mv -f "${INPUT_FOLDER}/conversion.log" "${SCRIPT_DIR}/log/"
 
 # Очищаем папку с временными файлами
-rm -f "${INPUT_FOLDER}/"*
+rm -rf "${INPUT_FOLDER:?}/"* 2>/dev/null || true
