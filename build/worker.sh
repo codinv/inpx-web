@@ -20,26 +20,38 @@ if [ ! -f "$FULL_PATH" ]; then
     exit 1
 fi
 
+# Определяем кодировку
+ENCODING="UTF-8"
+if grep -q 'encoding="windows-1251"' "$FULL_PATH"; then
+    ENCODING="WINDOWS-1251"
+fi
+
 # Извлекаем новое имя из метаданных FB2 (из title-info)
-NEW_NAME=$(sed -n '/<title-info>/,/<\/title-info>/ {
-    s/.*<sequence.*number="\([0-9]\{1,\}\)".*/\1/p
-    s/.*<book-title>\(.*\)<\/book-title>.*/\1/p
-}' "$FULL_PATH" | awk '
-    /^[0-9]+$/ { num=$0; next }
-    { 
-        sub(/ *\[.*$/, "", $0)
-        gsub(/[\/:*?"<>|]/, "_", $0)
-        gsub(/^ +| +$/, "", $0)
-        gsub(/  +/, " ", $0)
-        title=$0 
-    }
-    END {
-        if (num != "" && num != "0") 
-            printf "%02d %s", num, title 
-        else 
-            printf "%s", title 
-    }
-')
+NEW_NAME=$(
+    if [ "$ENCODING" = "WINDOWS-1251" ]; then
+        iconv -f WINDOWS-1251 -t UTF-8 "$FULL_PATH"
+    else
+        cat "$FULL_PATH"
+    fi | sed -n '/<title-info>/,/<\/title-info>/ {
+        s/.*<sequence.*number="\([0-9]\{1,\}\)".*/\1/p
+        s/.*<book-title>\(.*\)<\/book-title>.*/\1/p
+    }' | awk '
+        /^[0-9]+$/ { num=$0; next }
+        { 
+            sub(/ *\[.*$/, "", $0)
+            gsub(/[\/:*?"<>|]/, "_", $0)
+            gsub(/^ +| +$/, "", $0)
+            gsub(/  +/, " ", $0)
+            title=$0 
+        }
+        END {
+            if (num != "" && num != "0") 
+                printf "%02d %s", num, title 
+            else 
+                printf "%s", title 
+        }
+    '
+)
 
 # Определяем конечное имя файла
 if [ -z "$NEW_NAME" ]; then
