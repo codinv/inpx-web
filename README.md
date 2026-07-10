@@ -82,6 +82,6 @@ services:
 
 ---
 
-### Пример настроек для конвертирования в epub3 с помощью приложения fb2cng [fbc-config.yaml](https://github.com/codinv/inpx-web/blob/main/examples/fbc-config.yaml)
+### Пример настроек для конвертирования в epub3<br>с помощью приложения fb2cng [fbc-config.yaml](https://github.com/codinv/inpx-web/blob/main/examples/fbc-config.yaml)
 
-### Пример настроек для отправки на email Kindle с помощью приложения sync2kindle [s2km-config.yaml](https://github.com/codinv/inpx-web/blob/main/examples/s2km-config.yaml)
+### Пример настроек для отправки на email Kindle<br>с помощью приложения sync2kindle [s2km-config.yaml](https://github.com/codinv/inpx-web/blob/main/examples/s2km-config.yaml)
