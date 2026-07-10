@@ -1,0 +1,20 @@
+source: /data/app-export
+
+target: "your_kindle_email@kindle.com"
+
+book_extensions: [.epub]
+
+smtp:
+    server: smtp.yandex.ru
+    port: 587
+    from: "your_mail_user@yandex.ru"
+    user: "your_mail_user@yandex.ru"
+    password: "your_app_mail_password"
+
+logging:
+    console:
+        level: normal
+    file:
+        destination: sync2kindle.log
+        level: debug
+        mode: overwrite

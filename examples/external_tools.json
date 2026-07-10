@@ -1,0 +1,30 @@
+{
+  "epubExport1": {
+    "active": true,
+    "title": "(Kindle 1)",
+    "hint": "Конвертация FB2 → EPUB3 и отправка на Kindle через скрипт worker.sh (используется s2km-config.yaml по умолчанию)",
+    "ext": "fb2",
+    "cmd": "cp '${HASHFILE}.raw' '${FILENAME}'; sh '${EXTDIR}/worker.sh' '${FILENAME}'",
+    "debug": true,
+    "type": "cmd"
+  },
+  "epubExport2": {
+    "active": true,
+    "title": "(Kindle 2)",
+    "hint": "Конвертация FB2 → EPUB3 и отправка на Kindle через скрипт worker.sh с пользовательским конфигом s2km-config-2.yaml",
+    "ext": "fb2",
+    "cmd": "cp '${HASHFILE}.raw' '${FILENAME}'; sh '${EXTDIR}/worker.sh' '${FILENAME}' 's2km-config-2.yaml'",
+    "debug": true,
+    "type": "cmd"
+  }
+  ,
+  "epubExport3": {
+    "active": true,
+    "title": "(Kindle 3)",
+    "hint": "Конвертация FB2 → EPUB3 и отправка на Kindle через скрипт worker.sh с пользовательскими s2km-config-2.yaml и fbc-config-2.yaml конфигами",
+    "ext": "fb2",
+    "cmd": "cp '${HASHFILE}.raw' '${FILENAME}'; sh '${EXTDIR}/worker.sh' '${FILENAME}' 's2km-config-2.yaml' 'fbc-config-2.yaml'",
+    "debug": true,
+    "type": "cmd"
+  }
+}

@@ -1,0 +1,85 @@
+version: 1
+document:
+    fix_zip: false
+    open_from_cover: false
+    toc_type: normal
+    output_name_template: |
+        {{- $all := "" -}}
+        {{- if gt (len .Authors) 0 -}}
+        {{-   with first .Authors -}}
+        {{-     $all = .LastName -}}
+        {{-     if .FirstName }}{{ $all = (printf "%s %.1s." $all .FirstName) }}{{- end -}}
+        {{-     if .MiddleName }}{{ $all = (printf "%s%.1s." $all .MiddleName) }}{{- end -}}
+        {{-     if and (not $all) .Nickname }}{{ $all = .Nickname }}{{- end -}}
+        {{-   end -}}
+        {{-   $all = cat $all "-" -}}
+        {{- end -}}
+        {{- $res := "" -}}
+        {{- if $all -}}
+        {{-   $res = cat $all .Title -}}
+        {{- else -}}
+        {{-   $res = .Title -}}
+        {{- end -}}
+        {{- $res = regexReplaceAll "\\[.*?\\]" $res "" -}}
+        {{- $res = replace "/" "-" $res -}}
+        {{- $res = replace "\\" "-" $res -}}
+        {{- $res = replace ":" "-" $res -}}
+        {{- $res = replace "*" "-" $res -}}
+        {{- $res = replace "?" "" $res -}}
+        {{- $res = replace "<" "" $res -}}
+        {{- $res = replace ">" "" $res -}}
+        {{- $res = replace "\"" "" $res -}}
+        {{- $res = replace "«" "" $res -}}
+        {{- $res = replace "»" "" $res -}}
+        {{- $res = replace "“" "" $res -}}
+        {{- $res = replace "”" "" $res -}}
+        {{- $res = replace "„" "" $res -}}
+        {{- $res = replace "  " " " $res -}}
+        {{- trim $res -}}
+    file_name_transliterate: false
+    insert_soft_hyphen: false
+    metainformation:
+        title_template: |
+            {{- $prefix := "" -}}
+            {{- if gt (len .Series) 0 -}}
+            {{-   $targetSeries := first .Series -}}
+            {{-   range .Series -}}
+            {{-     if gt .Number 0 -}}
+            {{-       $targetSeries = . -}}
+            {{-       break -}}
+            {{-     end -}}
+            {{-   end -}}
+            {{-   if gt $targetSeries.Number 0 -}}
+            {{-     $prefix = printf "%02d. " $targetSeries.Number -}}
+            {{-   end -}}
+            {{- end -}}
+            {{- $cleanTitle := .Title -}}
+            {{- $cleanTitle = regexReplaceAll "\\[.*?\\]" $cleanTitle "" -}}
+            {{- $cleanTitle = replace "\"" "" $cleanTitle -}}
+            {{- $cleanTitle = replace "«" "" $cleanTitle -}}
+            {{- $cleanTitle = replace "»" "" $cleanTitle -}}
+            {{- $cleanTitle = replace "“" "" $cleanTitle -}}
+            {{- $cleanTitle = replace "”" "" $cleanTitle -}}
+            {{- $cleanTitle = replace "„" "" $cleanTitle -}}
+            {{- $cleanTitle = replace "'" "" $cleanTitle -}}
+            {{- $cleanTitle = replace "(" "" $cleanTitle -}}
+            {{- $cleanTitle = replace ")" "" $cleanTitle -}}
+            {{- $cleanTitle = replace "  " " " $cleanTitle -}}
+            {{- $cleanTitle = trim $cleanTitle -}}
+            {{- printf "%s%s" $prefix $cleanTitle -}}
+        creator_name_template: |
+            {{- .LastName -}}
+            {{- if .FirstName }} {{.FirstName}}{{ end -}}
+            {{- if .MiddleName }} {{.MiddleName }}{{ end -}}
+            {{- if and (not .LastName) (not .FirstName) (not .MiddleName) .Nickname }}{{ .Nickname }}{{ end -}}
+        transliterate: false
+    footnotes:
+        mode: float
+logging:
+    console:
+        level: normal
+    file:
+        destination_template: fb2cng.log
+        panic_destination_template: fb2cng-panic.log
+        level: debug
+        mode: overwrite

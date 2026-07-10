@@ -1,0 +1,29 @@
+{
+  "epubExport1": {
+    "active": true,
+    "title": "(Kindle 1)",
+    "hint": "Конвертация FB2 → EPUB и отправка на Kindle через fb2converter",
+    "ext": "fb2",
+    "cmd": "cp '${HASHFILE}.raw' '${FILENAME}'; ${EXTDIR}/app-fb2c/fb2c -c ${EXTDIR}/app-fb2c/configuration.toml convert --to epub --ow --stk --nodirs '${FILENAME}' '${EXTDIR}/app-export'; mv -f conversion.log '${EXTDIR}/log/'; rm -f ./*",
+    "debug": true,
+    "type": "cmd"
+  },
+  "epubExport2": {
+    "active": true,
+    "title": "(Kindle 2)",
+    "hint": "Конвертация FB2 → EPUB и отправка на Kindle через пользовательский скрипт worker.sh",
+    "ext": "fb2",
+    "cmd": "cp '${HASHFILE}.raw' '${FILENAME}'; sh '${EXTDIR}/worker.sh' '${FILENAME}'",
+    "debug": true,
+    "type": "cmd"
+  },
+  "epubExport3": {
+    "active": true,
+    "title": "(Kindle 3)",
+    "hint": "Конвертация FB2 → EPUB и отправка на Kindle через worker.sh с пользовательским конфигом my_config.toml",
+    "ext": "fb2",
+    "cmd": "cp '${HASHFILE}.raw' '${FILENAME}'; sh '${EXTDIR}/worker.sh' '${FILENAME}' 'my_config.toml'",
+    "debug": true,
+    "type": "cmd"
+  }
+}
