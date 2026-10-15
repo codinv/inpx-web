@@ -91,3 +91,32 @@ jobs:
           labels: |
             org.opencontainers.image.source=${{ github.repository_url }}
             org.opencontainers.image.version=${{ steps.set_version.outputs.IMAGE_VERSION }}
+
+      - name: Show bundled tool versions
+        continue-on-error: true
+        env:
+          IMAGE_VERSION: ${{ steps.set_version.outputs.IMAGE_VERSION }}
+          TAG_LATEST: ${{ steps.set_version.outputs.TAG_LATEST }}
+        run: |
+          IMAGE="ghcr.io/${REG_REPO}:${IMAGE_VERSION}"
+          FBC_VER="$(docker run --rm --entrypoint cat "$IMAGE" /data_init/app-fb2cng/fbc.ver)"
+          S2KM_VER="$(docker run --rm --entrypoint cat "$IMAGE" /data_init/app-sync2kindle/s2km.ver)"
+          if [[ "$TAG_LATEST" == "true" ]]; then TAGS="${IMAGE_VERSION}, latest"; else TAGS="${IMAGE_VERSION} (latest не менялся)"; fi
+          {
+            echo "## Образ ${IMAGE}"
+            echo ""
+            echo "| Компонент | Версия |"
+            echo "|---|---|"
+            echo "| fb2cng (fbc) | ${FBC_VER} |"
+            echo "| sync2kindle (s2km) | ${S2KM_VER} |"
+            echo ""
+            echo "Теги: ${TAGS}"
+            echo ""
+            echo "Запись для CHANGELOG.md:"
+            echo ""
+            echo '```'
+            echo "## ${IMAGE_VERSION} ($(date -u +%F))"
+            echo "- Включены: fb2cng ${FBC_VER}, sync2kindle ${S2KM_VER}"
+            echo "- inpx-web без изменений"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
