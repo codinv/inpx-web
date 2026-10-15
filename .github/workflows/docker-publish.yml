@@ -10,6 +10,11 @@ on:
           - Will be used as image tag
         required: true
         type: string
+      tag_latest:
+        description: "Also move the :latest tag to this build (leave OFF for test builds)"
+        required: false
+        type: boolean
+        default: false
   release:
     types: [published]
 
@@ -21,20 +26,20 @@ jobs:
     permissions:
       contents: read
       packages: write
-    
+
     steps:
       - name: Checkout project code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-        
+
       - name: Checkout ci-configs
         uses: actions/checkout@v4
         with:
           repository: codinv/ci-configs
           path: ci-configs
           token: ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}
-          
+
       - name: Verify Dockerfile and set vars
         run: |
           PROJECT_NAME=$(basename ${{ github.repository }})
@@ -42,37 +47,47 @@ jobs:
           echo "DOCKERFILE_PATH=$DOCKERFILE_PATH" >> $GITHUB_ENV
           echo "REG_REPO=${{ github.repository_owner }}/$PROJECT_NAME" >> $GITHUB_ENV
           [ -f "$DOCKERFILE_PATH" ] || { echo "::error::Dockerfile not found at path: $DOCKERFILE_PATH"; exit 1; }
-          
+
       - name: Determine image version
         id: set_version
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_VERSION: ${{ github.event.inputs.build_version }}
+          INPUT_LATEST: ${{ github.event.inputs.tag_latest }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "IMAGE_VERSION=${{ github.event.inputs.build_version }}" >> $GITHUB_OUTPUT
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            VERSION="$INPUT_VERSION"
+            if [[ "$INPUT_LATEST" == "true" ]]; then LATEST=true; else LATEST=false; fi
           else
-            echo "IMAGE_VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+            VERSION="$RELEASE_TAG"
+            if [[ "$RELEASE_PRERELEASE" == "true" ]]; then LATEST=false; else LATEST=true; fi
           fi
-          echo "Using version: $IMAGE_VERSION"
-        
+          echo "IMAGE_VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "TAG_LATEST=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "Using version: $VERSION (also tag latest: $LATEST)"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        
+
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ${{ env.DOCKERFILE_PATH }}
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           tags: |
             ghcr.io/${{ env.REG_REPO }}:${{ steps.set_version.outputs.IMAGE_VERSION }}
-            ghcr.io/${{ env.REG_REPO }}:latest
+            ${{ steps.set_version.outputs.TAG_LATEST == 'true' && format('ghcr.io/{0}:latest', env.REG_REPO) || '' }}
           labels: |
             org.opencontainers.image.source=${{ github.repository_url }}
             org.opencontainers.image.version=${{ steps.set_version.outputs.IMAGE_VERSION }}
